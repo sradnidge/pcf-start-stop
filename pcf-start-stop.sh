@@ -11,7 +11,7 @@ if [ $1 == "stop" -o $1 == "start" ];
   then
     echo "Running PCF $1 Process..."
   else
-    echo "Only stop or start are valid args!"
+    echo "Usage: ${0##*/} [stop | start]"
     exit 1
 fi
 
