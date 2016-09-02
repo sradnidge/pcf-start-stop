@@ -29,7 +29,7 @@ case $1 in
   'stop')
     jobVMs=$(bosh vms --detail| grep partition| awk -F '|' '{ print $2 }')
     bosh vm resurrection off
-    for (( i=${#bootOrder[@]}-1; i>=0; i-- )); do
+    for (( i = 0; i < ${#bootOrder[@]}; i++ )); do
       for x in $jobVMs; do
         jobId=$(echo $x | awk -F "/" '{ print $1 }')
         instanceId=$(echo $x | awk -F "/" '{ print $2 }')
