@@ -50,7 +50,7 @@ case $1 in
     ;;
 
   *)
-   usage
-   ;;
+    usage
+    ;;
 
 esac
