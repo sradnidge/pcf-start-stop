@@ -37,11 +37,11 @@ case $1 in
           if [ "$jobType" == "${bootOrder[$i]}" ];
           then
             echo "stopping $jobType ($jobId/$instanceId)"
-            bosh -n stop $jobId --hard
+            bosh -n stop $jobId --hard # the --hard option means delete VMs
           fi
       done;
     done;
-    bosh -n stop --hard
+    bosh -n stop --hard # the --hard option means delete VMs
     ;;
 
   'start')
