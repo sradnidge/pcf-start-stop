@@ -7,5 +7,5 @@
 - Run `pcf-start-stop.sh (start | stop) [--hard]`
  - Optionally, add to crontab to schedule
 
-## WARNING
-If you chose the 'internal' options for blob store and / or database when deploying PCF, running this script with the `--hard` option will indeed result in the loss of everything.
+## NOTE
+The `nfs_server` and `mysql` VMs (if they are present) will never be deleted, if this script is run with the `--hard` option they will just be shut down (and all other VMs will be deleted).
