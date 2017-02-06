@@ -41,13 +41,13 @@ case $1 in
 
   'stop')
     bosh vm resurrection off
-    # stop everything except jobs in doNotStop
     for x in $jobVMs; do
       jobId=$(echo $x | awk -F "/" '{ print $1 }')
       instanceId=$(echo $x | awk -F "/" '{ print $2 }')
       jobType=$(echo $jobId | awk -F "-" '{ print $1 }')
       if [ -n "$2" ] && [ "$2" == "--hard" ]
         then
+          # hard stop everything except jobs in doNotDelete
           if [ hasIn "${doNotDelete[@]}" "$jobType" ]
             then
               echo "stopping $jobType ($jobId/$instanceId)"
