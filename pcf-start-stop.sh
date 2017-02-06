@@ -14,7 +14,10 @@ function usage {
 # @usage hasIn "${Array[@]}" "Element"
 function hasIn {
   local e
-  for e in "${@:1}"; do [[ "$e" == "$2" ]] && return 0; done
+  for e in "${@:1}"
+  do
+    [[ "$e" == "$2" ]] && return 0
+  done
   return 1
 }
 
@@ -42,7 +45,8 @@ case $1 in
       nfs_server
     )
 
-    for x in $jobVMs; do
+    for x in $jobVMs
+    do
       jobId=$(echo $x | awk -F "/" '{ print $1 }')
       instanceId=$(echo $x | awk -F "/" '{ print $2 }')
       jobType=$(echo $jobId | awk -F "-" '{ print $1 }')
@@ -61,7 +65,6 @@ case $1 in
         echo "stopping $jobType ($jobId/$instanceId)"
         bosh -n stop $jobId
       fi
-
     done;
     ;;
 
