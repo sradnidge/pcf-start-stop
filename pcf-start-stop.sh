@@ -10,8 +10,8 @@ function usage {
 }
 
 if [ $# -eq 0 ]
-  then
-    usage
+then
+  usage
 fi
 
 # @param Array
@@ -46,19 +46,19 @@ case $1 in
       instanceId=$(echo $x | awk -F "/" '{ print $2 }')
       jobType=$(echo $jobId | awk -F "-" '{ print $1 }')
       if [ -n "$2" ] && [ "$2" == "--hard" ]
+      then
+        # hard stop everything except jobs in doNotDelete
+        if [ hasIn "${doNotDelete[@]}" "$jobType" ]
         then
-          # hard stop everything except jobs in doNotDelete
-          if [ hasIn "${doNotDelete[@]}" "$jobType" ]
-            then
-              echo "stopping $jobType ($jobId/$instanceId)"
-              bosh -n stop $jobId
-            else
-              echo "deleting $jobType ($jobId/$instanceId)"
-              bosh -n stop $jobId --hard
-          fi
-        else
           echo "stopping $jobType ($jobId/$instanceId)"
           bosh -n stop $jobId
+        else
+          echo "deleting $jobType ($jobId/$instanceId)"
+          bosh -n stop $jobId --hard
+        fi
+      else
+        echo "stopping $jobType ($jobId/$instanceId)"
+        bosh -n stop $jobId
       fi
 
     done;
