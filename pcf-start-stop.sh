@@ -9,11 +9,6 @@ function usage {
   exit 1
 }
 
-if [ $# -eq 0 ]
-then
-  usage
-fi
-
 # @param Array
 # @param Element
 # @usage hasIn "${Array[@]}" "Element"
@@ -23,14 +18,10 @@ function hasIn {
   return 1
 }
 
-# Get a friendly list of jobs
-jobVMs=$(bosh vms --detail| grep partition| awk -F '|' '{ print $2 }')
-
-# If doing a hard stop, do not delete these jobs (if they exist)
-declare -a doNotDelete=(
-  mysql
-  nfs_server
-)
+if [ $# -eq 0 ]
+then
+  usage
+fi
 
 case $1 in
 
@@ -41,6 +32,16 @@ case $1 in
 
   'stop')
     bosh vm resurrection off
+
+    # Get a friendly list of jobs
+    jobVMs=$(bosh vms --detail| grep partition| awk -F '|' '{ print $2 }')
+
+    # If doing a hard stop, do not delete these jobs (if they exist)
+    declare -a doNotDelete=(
+      mysql
+      nfs_server
+    )
+
     for x in $jobVMs; do
       jobId=$(echo $x | awk -F "/" '{ print $1 }')
       instanceId=$(echo $x | awk -F "/" '{ print $2 }')
