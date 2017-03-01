@@ -15,7 +15,7 @@ function usage {
 # @example hasIn "${Array[@]}" "Element"
 function hasIn {
   local e
-  for e in "${@:1}"
+  for e in "${1}"
   do
     [[ "$e" == "$2" ]] && return 0
   done
@@ -49,22 +49,22 @@ case $1 in
     for x in $jobVMs
     do
       job=$(echo $x | awk -F "/" '{ print $1 }')
-      instanceId=$(echo $x | awk -F "/" '{ print $2 }' | awk -F "(" '{ print $1 }')
+      index=$(echo $x | awk -F "/" '{ print $2 }' | awk -F "(" '{ print $1 }')
       jobId=$(echo $x | awk -F "(" '{ print $2 }' | awk -F ")" '{ print $1 }')
       if [ -n "$2" ] && [ "$2" == "--hard" ]
       then
         # hard stop everything except jobs in doNotDelete
         if hasIn "${doNotDelete[@]}" "$job"
         then
-          echo "stopping $job/$instanceId (job id: $jobId)"
-          bosh -n stop $job
+          echo "stopping $job/$index (job id:$jobId)"
+          bosh -n stop $job $index
         else
-          echo "deleting $job/$instanceId (job id: $jobId)"
-          bosh -n stop $job --hard
+          echo "deleting $job/$index (job id:$jobId)"
+          bosh -n stop $job $index --hard
         fi
       else
-        echo "stopping $job/$instanceId (job id:$jobId)"
-        bosh -n stop $job
+        echo "stopping $job/$index (job id:$jobId)"
+        bosh -n stop $job $index
       fi
     done;
     ;;
