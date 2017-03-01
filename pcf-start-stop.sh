@@ -54,7 +54,7 @@ case $1 in
       if [ -n "$2" ] && [ "$2" == "--hard" ]
       then
         # hard stop everything except jobs in doNotDelete
-        if [ hasIn "${doNotDelete[@]}" "$job" ]
+        if hasIn "${doNotDelete[@]}" "$job"
         then
           echo "stopping $job/$instanceId (job id: $jobId)"
           bosh -n stop $job
