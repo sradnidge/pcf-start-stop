@@ -11,7 +11,8 @@ function usage {
 
 # @param Array
 # @param Element
-# @usage hasIn "${Array[@]}" "Element"
+# @returns 0 if element is in Array, 1 if not
+# @example hasIn "${Array[@]}" "Element"
 function hasIn {
   local e
   for e in "${@:1}"
@@ -37,7 +38,7 @@ case $1 in
     bosh vm resurrection off
 
     # Get a friendly list of jobs
-    jobVMs=$(bosh vms --detail| grep partition| awk -F '|' '{ print $2 }')
+    jobVMs=$(bosh vms --detail | grep -E '^\|.[a-z]' | awk -F '|' '{ print $2 }' | tr -d '[[:blank:]]')
 
     # If doing a hard stop, do not delete these jobs (if they exist)
     declare -a doNotDelete=(
@@ -47,23 +48,23 @@ case $1 in
 
     for x in $jobVMs
     do
-      jobId=$(echo $x | awk -F "/" '{ print $1 }')
-      instanceId=$(echo $x | awk -F "/" '{ print $2 }')
-      jobType=$(echo $jobId | awk -F "-" '{ print $1 }')
+      job=$(echo $x | awk -F "/" '{ print $1 }')
+      instanceId=$(echo $x | awk -F "/" '{ print $2 }' | awk -F "(" '{ print $1 }')
+      jobId=$(echo $x | awk -F "(" '{ print $2 }' | awk -F ")" '{ print $1 }')
       if [ -n "$2" ] && [ "$2" == "--hard" ]
       then
         # hard stop everything except jobs in doNotDelete
-        if [ hasIn "${doNotDelete[@]}" "$jobType" ]
+        if [ hasIn "${doNotDelete[@]}" "$job" ]
         then
-          echo "stopping $jobType ($jobId/$instanceId)"
-          bosh -n stop $jobId
+          echo "stopping $job/$instanceId (job id: $jobId)"
+          bosh -n stop $job
         else
-          echo "deleting $jobType ($jobId/$instanceId)"
-          bosh -n stop $jobId --hard
+          echo "deleting $job/$instanceId (job id: $jobId)"
+          bosh -n stop $job --hard
         fi
       else
-        echo "stopping $jobType ($jobId/$instanceId)"
-        bosh -n stop $jobId
+        echo "stopping $job/$instanceId (job id:$jobId)"
+        bosh -n stop $job
       fi
     done;
     ;;
