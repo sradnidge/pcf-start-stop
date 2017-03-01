@@ -8,4 +8,6 @@
  - Optionally, add to crontab to schedule
 
 ## NOTE
+As of now, this script works with PCF 1.9 and above only!
+
 The `nfs_server` and `mysql` VMs (if they are present) will never be deleted, if this script is run with the `--hard` option they will just be shut down (and all other VMs will be deleted).
