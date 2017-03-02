@@ -57,10 +57,10 @@ case $1 in
         if hasIn "${doNotDelete[@]}" "$job"
         then
           echo "stopping $job/$index (job id:$jobId)"
-          bosh -n stop $job $index
+          bosh -n stop $job $index --force
         else
           echo "deleting $job/$index (job id:$jobId)"
-          bosh -n stop $job $index --hard
+          bosh -n stop $job $index --hard --force
         fi
       else
         echo "stopping $job/$index (job id:$jobId)"
