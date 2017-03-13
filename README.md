@@ -1,5 +1,7 @@
 
-## Usage
+### **COMPLETELY UNSUPPORTED - USE AT YOUR OWN RISK**
+
+### Usage
 
 - SSH into Ops Manager
 - Log in to your BOSH director (`bosh --ca-cert /var/tempest/workspaces/default/root_ca_certificate target DIRECTOR-IP-ADDRESS`)
@@ -7,7 +9,11 @@
 - Run `pcf-start-stop.sh (start | stop) [--hard]`
  - Optionally, add to crontab to schedule
 
-## NOTE
-As of now, this script works with PCF 1.9 and above only!
+### NOTE
+DO NOT USE THIS FOR HA DEPLOYMENTS. Consul has some real issues coming back from the dead when deployed in an HA manner (ie more than 1 instance)
 
-The `nfs_server` and `mysql` VMs (if they are present) will never be deleted, if this script is run with the `--hard` option they will just be shut down (and all other VMs will be deleted).
+You can only use the `--hard` argument if you have chosen 'external' options for the system blobstore and system database. The script will check for `nfs_server` and `mysql` jobs and exit without doing anything if either one is found.
+
+A `--hard` stop takes ~30min to complete. A `start` after a hard stop takes around the same amount of time. You probably want to run this via `tmux` or `screen`.
+
+And as of now, this script works with PCF 1.9 and above only!

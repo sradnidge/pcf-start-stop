@@ -5,7 +5,7 @@ shopt -s expand_aliases
 source ~/.profile
 
 function usage {
-  echo "Usage: ${0##*/} (start | stop) [--hard]"
+  printf "Usage: ${0##*/} (start | stop) [--hard]"
   exit 1
 }
 
@@ -27,46 +27,56 @@ then
   usage
 fi
 
+start_time=$(date +%s)
+manifest=$(bosh deployment | awk -F "/" '{ print $7}' |awk -F "." '{ print $1 }')
+
 case $1 in
 
   'start')
+    printf "\nstarting deployment $manifest\n\n"
     bosh -n start
+    printf "\nenabling VM resurrection\n\n"
     bosh vm resurrection on
+    printf "\nrunning smoke tests\n\n"
+    bosh -n run errand smoke-tests
     ;;
 
   'stop')
+
+    printf "\ndisabling VM resurrection\n\n"
     bosh vm resurrection off
 
-    # Get a friendly list of jobs
-    jobVMs=$(bosh vms --detail | grep -E '^\|.[a-z]' | awk -F '|' '{ print $2 }' | tr -d '[[:blank:]]')
-
-    # If doing a hard stop, do not delete these jobs (if they exist)
-    declare -a doNotDelete=(
-      mysql
-      nfs_server
-    )
-
-    for x in $jobVMs
-    do
-      job=$(echo $x | awk -F "/" '{ print $1 }')
-      index=$(echo $x | awk -F "/" '{ print $2 }' | awk -F "(" '{ print $1 }')
-      jobId=$(echo $x | awk -F "(" '{ print $2 }' | awk -F ")" '{ print $1 }')
-      if [ -n "$2" ] && [ "$2" == "--hard" ]
-      then
-        # hard stop everything except jobs in doNotDelete
-        if hasIn "${doNotDelete[@]}" "$job"
+    # Stopping a deployment ensures things are shut down in the correct order
+    if [ -n "$2" ] && [ "$2" == "--hard" ]
+    then
+      # Do not allow hard stop if any of these jobs are running
+      declare -a protected=(
+        mysql
+        nfs_server
+      )
+      # Get the list of jobs in this deployment
+      jobVMs=$(bosh vms --detail | grep -E '^\|.[a-z]' | awk -F '|' '{ print $2 }' | tr -d '[[:blank:]]')
+      printf "\nchecking deployment for protected jobs... "
+      for x in $jobVMs
+      do
+        job=$(echo $x | awk -F "/" '{ print $1 }')
+        if hasIn "${protected[@]}" "$job"
         then
-          echo "stopping $job/$index (job id:$jobId)"
-          bosh -n stop $job $index --force
-        else
-          echo "deleting $job/$index (job id:$jobId)"
-          bosh -n stop $job $index --hard --force
+          printf "found protected job $job\n\n"
+          printf "exiting script, no actions have been taken\n\n"
+          printf "re-enabling VM resurrection\n\n"
+          bosh vm resurrection on
+          exit 1
         fi
-      else
-        echo "stopping $job/$index (job id:$jobId)"
-        bosh -n stop $job $index
-      fi
-    done;
+      done
+      printf "done"
+      printf "\n\ndeleting deployment $manifest\n\n"
+      bosh -n stop --hard
+    else
+      # Soft stopping a deployment with internal blobstore / database is OK
+      printf "\n\nstopping deployment $manifest\n\n"
+      bosh -n stop
+    fi
     ;;
 
   *)
@@ -74,3 +84,7 @@ case $1 in
     ;;
 
 esac
+
+end_time=$(date +%s)
+secs=$(($end_time-$start_time))
+printf "\nscript took: %02dh:%02dm:%02ds\n\n" $(($secs/3600)) $(($secs%3600/60)) $(($secs%60))
