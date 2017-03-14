@@ -45,15 +45,7 @@ case $1 in
   'stop')
     # Get the list of jobs in this deployment
     jobVMs=$(bosh vms --detail | grep -E '^\|.[a-z]' | awk -F '|' '{ print $2 }' | tr -d '[[:blank:]]')
-    # make sure only 1 Consul instance is running
-    #consulVmCount=$(bosh vms --detail | grep -E '^\|.[a-z]' | awk -F '|' '{ print $2 }' | tr -d '[[:blank:]]' | grep -E '^consul' | wc -l)
-    #if [ $consulVmCount -gt 1 ]
-    #then
-    #  printf "\n$consulVmCount consul jobs found, aborting\n\n"
-    #  exit 1
-    #else
-    #  printf "\n1 consul job found, safe to proceed\n\n"
-    #fi
+    # Make sure only 1 Consul instance is running
     for y in $jobVMs
     do
       consulIndex=$(echo $y | grep '^consul' | awk -F '/' '{ print $2 }' | awk -F '(' '{ print $1 }')
@@ -63,11 +55,10 @@ case $1 in
         exit 1
       fi
     done
-
+    # We got here, safe to proceed
     printf "\n1 consul job found, proceeding\n\n"
     printf "disabling VM resurrection\n\n"
     bosh vm resurrection off
-
     # Stopping a deployment ensures things are shut down in the correct order
     if [ -n "$2" ] && [ "$2" == "--hard" ]
     then
@@ -82,13 +73,13 @@ case $1 in
         job=$(echo $z | awk -F "/" '{ print $1 }')
         if hasIn "${protected[@]}" "$job"
         then
-          printf "found protected job $job\n\n"
-          printf "exiting script, no actions have been taken\n\n"
+          printf "found protected job $job, aborting - no actions have been taken\n\n"
           printf "re-enabling VM resurrection\n\n"
           bosh vm resurrection on
           exit 1
         fi
       done
+      # We got here, safe to proceed
       printf "done"
       printf "\n\ndeleting deployment $manifest\n\n"
       bosh -n stop --hard
