@@ -10,7 +10,7 @@
  - Optionally, add to crontab to schedule
 
 ### NOTE
-DO NOT USE THIS FOR HA DEPLOYMENTS. Consul has some real issues coming back from the dead when deployed in an HA manner (ie more than 1 instance)
+DO NOT USE THIS FOR HA DEPLOYMENTS. Consul has some real issues coming back from the dead when deployed in an HA manner (ie more than 1 instance), the script will check the number of Consul jobs and abort if more than 1 is found.
 
 You can only use the `--hard` argument if you have chosen 'external' options for the system blobstore and system database. The script will check for `nfs_server` and `mysql` jobs and exit without doing anything if either one is found.
 

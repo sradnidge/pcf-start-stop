@@ -28,7 +28,8 @@ then
 fi
 
 start_time=$(date +%s)
-manifest=$(bosh deployment | awk -F "/" '{ print $7}' |awk -F "." '{ print $1 }')
+# Get manifest name for this deployment
+manifest=$(bosh deployment | awk -F "/" '{ print $7}' | awk -F "." '{ print $1 }')
 
 case $1 in
 
@@ -42,8 +43,29 @@ case $1 in
     ;;
 
   'stop')
+    # Get the list of jobs in this deployment
+    jobVMs=$(bosh vms --detail | grep -E '^\|.[a-z]' | awk -F '|' '{ print $2 }' | tr -d '[[:blank:]]')
+    # make sure only 1 Consul instance is running
+    #consulVmCount=$(bosh vms --detail | grep -E '^\|.[a-z]' | awk -F '|' '{ print $2 }' | tr -d '[[:blank:]]' | grep -E '^consul' | wc -l)
+    #if [ $consulVmCount -gt 1 ]
+    #then
+    #  printf "\n$consulVmCount consul jobs found, aborting\n\n"
+    #  exit 1
+    #else
+    #  printf "\n1 consul job found, safe to proceed\n\n"
+    #fi
+    for y in $jobVMs
+    do
+      consulIndex=$(echo $y | grep '^consul' | awk -F '/' '{ print $2 }' | awk -F '(' '{ print $1 }')
+      if [ $consulIndex ] && [ $consulIndex -ne 0 ]
+      then
+        printf "\nmore than 1 consul job found, aborting\n\n"
+        exit 1
+      fi
+    done
 
-    printf "\ndisabling VM resurrection\n\n"
+    printf "\n1 consul job found, proceeding\n\n"
+    printf "disabling VM resurrection\n\n"
     bosh vm resurrection off
 
     # Stopping a deployment ensures things are shut down in the correct order
@@ -54,12 +76,10 @@ case $1 in
         mysql
         nfs_server
       )
-      # Get the list of jobs in this deployment
-      jobVMs=$(bosh vms --detail | grep -E '^\|.[a-z]' | awk -F '|' '{ print $2 }' | tr -d '[[:blank:]]')
       printf "\nchecking deployment for protected jobs... "
-      for x in $jobVMs
+      for z in $jobVMs
       do
-        job=$(echo $x | awk -F "/" '{ print $1 }')
+        job=$(echo $z | awk -F "/" '{ print $1 }')
         if hasIn "${protected[@]}" "$job"
         then
           printf "found protected job $job\n\n"
