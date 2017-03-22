@@ -5,7 +5,7 @@ shopt -s expand_aliases
 source ~/.profile
 
 function usage {
-  printf "Usage: ${0##*/} (start | stop) [--hard]"
+  printf "Usage: ${0##*/} (start | stop) [--hard]\n"
   exit 1
 }
 
